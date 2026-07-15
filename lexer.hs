@@ -69,6 +69,7 @@ closeFrame (CVerb, _) = LVerbEnd
 
 closeUntil :: Int -> [LayoutFrame] -> ([Lexeme], [LayoutFrame])
 -- pop stack & emit close tags until ii >= si
+closeUntil _ [] = ([], [])
 closeUntil ii stk@(f@(_, si):fs)
   | ii >= si  = ([], stk)
   | ii <  si  = (out ++ [closeFrame f], fs')
