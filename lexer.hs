@@ -175,7 +175,6 @@ cmpInd ii si
 -- Elaborate a line with its indent in stack context 
 
 stepLine :: String -> Int -> [LayoutFrame] -> ([Lexeme], [LayoutFrame])
-stepBull :: String -> Int -> [LayoutFrame] -> ([Lexeme], [LayoutFrame])
 
 -- a flush-left line in outermost context
 stepLine t 0   [] =  ([LLine t], [])
@@ -190,16 +189,17 @@ stepLine t 0 stk  = (ls ++ [LLine t], [])
 stepLine t ii@(i+1) stk@((CVerb, si) : fs) =
   case cmpInd ii si of
     CRSibl  -> ([LLine t], stk)
-    CRChild -> ([LVerbBeg, LLine t], stk)
-    CRClose -> closeUntil ii stk
+    CRChild -> ([LVerbBeg, LLine t], (CVerb, ii) : stk)
+    CRClose -> let (ls, stk') = closeUntil ii stk in (ls ++ [LLine t], stk')
 -- an indented line in bullet context
 stepLine t ii@(i+1) stk@((CBull, si) : fs) =
   case cmpInd ii si of
     CRSibl  -> ([LLine t], stk)
-    CRChild -> ([LBullBeg, LLine t], stk)
-    CRClose -> closeUntil ii stk
+    CRChild -> ([LBullBeg, LLine t], (CBull, ii) : stk)
+    CRClose -> let (ls, stk') = closeUntil ii stk in (ls ++ [LLine t], stk')
 
 
+stepBull :: String -> Int -> [LayoutFrame] -> ([Lexeme], [LayoutFrame])
 -- a flush-left bullet -- impossible
 stepBull t 0 stk =  error "FlushLeft Bullet"
 -- a top level bullet ie no context
@@ -209,8 +209,8 @@ stepBull t (ii+1) [] = ([LBullBeg, LLine t], [(CBull, ii+1)])
 stepBull t ii stk@((CBull, si) : fs) =
   case cmpInd ii si of
     CRSibl  -> ([LLine t] , stk)
-    CRChild -> ([LVerbBeg, LLine t], stk)
-    CRClose -> closeUntil ii stk
+    CRChild -> ([LVerbBeg, LLine t], (CVerb,ii) : stk)
+    CRClose -> let (ls, stk') = closeUntil ii stk in (ls ++ [LLine t], stk')
 
 -- bullet inside verb block not allowed?
 stepBull t ii stk@((CVerb, si) : fs) = error "Bullet inside Verb"
