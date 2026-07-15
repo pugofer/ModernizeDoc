@@ -1,0 +1,2 @@
+This is an attempt to upgrade the 92 Mark Jones format of gofer doc to something modern
+It uses Haskell 

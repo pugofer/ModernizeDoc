@@ -1,0 +1,50 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.hi
+
+# Compiled Dynamic libraries
+*.so
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# executables
+pug
+pug.exe
+pugc
+pugc.exe
+
+
+# Python cache
+__pycache__
+
+# Test reports and artifacts
+test-reports/
+htmlcov/
+.coverage
+*.xml
+
+
+# AI codding agent
+.clinerules
+
+# Python Virtual Environment and tools
+# ------------------------------------
+# Python virtual environments
+.pug-test/
+venv/
+ENV/
+env/
+
+# direnv cache
+.direnv/
+
+# Python compiled files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
