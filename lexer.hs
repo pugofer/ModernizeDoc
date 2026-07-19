@@ -1,7 +1,10 @@
 {-# LANGUAGE NPlusKPatterns #-}
-module Lexer where
+module Main where
 import Data.List (isPrefixOf)
 import Data.Char (isSpace)
+
+import System.Environment (getArgs)
+import System.IO          (stderr, hPutStrLn)
 
 ------------------------------------------------------------
 -- Ontology 0 : Input Lines
@@ -114,7 +117,8 @@ parseCmd s =
   case cmd of
     "ST" -> handleSect rest
     "co" -> PCmd cmd rest
-    _    -> error ("Unhandled cmd: " ++ cmd)
+    _    -> PCmd cmd rest
+--    _    -> error ("Unhandled cmd: " ++ cmd)
   where 
     (cmd, rest0) = break isSpace s
     rest         = dropWhile isSpace rest0
@@ -180,7 +184,7 @@ stepLine :: String -> Int -> [LayoutFrame] -> ([Lexeme], [LayoutFrame])
 -- a flush-left line in outermost context
 stepLine t 0   [] =  ([LLine t], [])
 -- an indented line in outermost context
-stepLine t (ii+1) [] = ([LVerbBeg, LLine t], [(CVerb, ii+1)])
+stepLine t ii@(ii+1) [] = ([LVerbBeg, LLine t], [(CVerb, ii)])
 -- flush-left line with pending context
 -- wonder if this is more case analysis than required
 stepLine t 0 stk  = (ls ++ [LLine t], [])
@@ -196,7 +200,7 @@ stepLine t ii@(i+1) stk@((CVerb, si) : fs) =
 stepLine t ii@(i+1) stk@((CBull, si) : fs) =
   case cmpInd ii si of
     CRSibl  -> ([LLine t], stk)
-    CRChild -> ([LBullBeg, LLine t], (CBull, ii) : stk)
+    CRChild -> ([LVerbBeg, LLine t], (CVerb, ii) : stk)
     CRClose -> let (ls, stk') = closeUntil ii stk in (ls ++ [LLine t], stk')
 
 
@@ -204,14 +208,26 @@ stepBull :: String -> Int -> [LayoutFrame] -> ([Lexeme], [LayoutFrame])
 -- a flush-left bullet -- impossible
 stepBull t 0 stk =  error "FlushLeft Bullet"
 -- a top level bullet ie no context
-stepBull t (ii+1) [] = ([LBullBeg, LLine t], [(CBull, ii+1)])
+stepBull t ii@(i+1) [] = ([LBullBeg, LLine t], [(CBull, ii)])
       
 -- a nested bullet
 stepBull t ii stk@((CBull, si) : fs) =
   case cmpInd ii si of
-    CRSibl  -> ([LLine t] , stk)
+    CRSibl  -> ([LBullEnd, LBullBeg, LLine t] , stk)
     CRChild -> ([LVerbBeg, LLine t], (CVerb,ii) : stk)
     CRClose -> let (ls, stk') = closeUntil ii stk in (ls ++ [LLine t], stk')
 
 -- bullet inside verb block not allowed?
 stepBull t ii stk@((CVerb, si) : fs) = error "Bullet inside Verb"
+
+
+main :: IO ()
+main = do
+  args <- getArgs
+  case args of
+    [] -> hPutStrLn stderr "Error: No input file"
+    [infile] -> do 
+      contents <- readFile infile
+--       let result = process $ map classify $ lines contents
+      let result = lexer (lines contents)
+      mapM_ print result
