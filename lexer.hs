@@ -184,7 +184,7 @@ stepLine :: String -> Int -> [LayoutFrame] -> ([Lexeme], [LayoutFrame])
 -- a flush-left line in outermost context
 stepLine t 0   [] =  ([LLine t], [])
 -- an indented line in outermost context
-stepLine t ii@(ii+1) [] = ([LVerbBeg, LLine t], [(CVerb, ii)])
+stepLine t ii@(i+1) [] = ([LVerbBeg, LLine t], [(CVerb, ii)])
 -- flush-left line with pending context
 -- wonder if this is more case analysis than required
 stepLine t 0 stk  = (ls ++ [LLine t], [])
